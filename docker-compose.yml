@@ -1,0 +1,79 @@
+version: '3.2'
+services:
+  driver-location-service:
+    build:
+      dockerfile: ./driver-location-service.docker
+      context: ./driver-location-service
+    volumes:
+      - .:/driver-location-service
+      - ~/.m2:/root/.m2
+    working_dir: /driver-location-service
+    command:
+      - bash
+      - -c
+      - cd ./driver-location-service && mvn clean spring-boot:run
+    tty: true
+    expose:
+      - "8080"
+
+  zombie-driver-service:
+    build:
+      dockerfile: ./zombie-driver-service.docker
+      context: ./zombie-driver-service
+    volumes:
+      - .:/zombie-driver-service
+      - ~/.m2:/root/.m2
+    working_dir: /zombie-driver-service
+    command:
+      - bash
+      - -c
+      - cd ./zombie-driver-service && mvn clean spring-boot:run
+    tty: true
+    expose:
+      - "8090"
+
+  gateway-service:
+    build:
+      dockerfile: ./gateway-service.docker
+      context: ./gateway-service
+    volumes:
+      - .:/gateway-service
+      - ~/.m2:/root/.m2
+    working_dir: /gateway-service
+    command:
+      - bash
+      - -c
+      - cd ./gateway-service && mvn clean spring-boot:run
+    tty: true
+    ports:
+      - "8070:8070"
+
+  redis:
+    image: redis:4.0.9-alpine
+    hostname: redis
+    ports:
+      - "6379:6379"
+
+  nsqlookupd:
+    image: nsqio/nsq:v0.3.8
+    command: /nsqlookupd
+    ports:
+      - "4160:4160"
+      - "4161:4161"
+
+  nsqd:
+    image: nsqio/nsq:v0.3.8
+    command: /nsqd --lookupd-tcp-address=nsqlookupd:4160 --broadcast-address=192.168.99.101
+    links:
+      - nsqlookupd:nsqlookupd
+    ports:
+      - "4150:4150"
+      - "4151:4151"
+
+  nsqadmin:
+    image: nsqio/nsq:v0.3.8
+    ports:
+      - "4171:4171"
+    links:
+      - nsqlookupd:nsqlookupd
+    command: /nsqadmin --lookupd-http-address=nsqlookupd:4161
