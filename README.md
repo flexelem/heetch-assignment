@@ -26,6 +26,10 @@ Adding new endpoints shouldn't require any code modification except for the `gat
 
 `PATCH /drivers/:id/locations`
 
+```
+curl -X PATCH --header "Content-Type:application/json" --data "{"latitude": 82.7,"longitude": 95.4}" "http://192.168.99.100:8070/drivers/1/locations"
+```
+
 **Payload**
 
 ```json
@@ -46,6 +50,10 @@ Coordinates received on this endpoint are converted to [NSQ](https://github.com/
 ---
 
 `GET /drivers/:id`
+
+```
+curl -X GET http://<docker-machine-ip>:8070/drivers/1
+```
 
 **Response**
 
